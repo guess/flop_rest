@@ -11,7 +11,7 @@ REST-friendly query parameters for [Flop](https://github.com/woylie/flop).
 Flop is excellent for filtering, sorting, and paginating Ecto queries. But its query parameter format isn't ideal for API consumers:
 
 ```
-GET /events?filters[0][field]=status&filters[0][op]==&filters[0][value]=published
+GET /events?filters[0][field]=status&filters[0][op]==&filters[0][value]=published&filters[1][field]=starts_at&filters[1][op]=>=&filters[1][value]=2024-01-01&order_by[0]=starts_at&order_directions[0]=desc&first=20
 ```
 
 This is verbose, error-prone, and unfamiliar to developers used to modern REST APIs.

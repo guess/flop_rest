@@ -12,7 +12,7 @@ defmodule FlopRest.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       name: "FlopRest",
-      description: "Transform Stripe-style REST query params to Flop format",
+      description: "Parse Stripe-style REST API query params into Flop format for filtering, sorting, and pagination",
       source_url: @source_url,
       homepage_url: @source_url,
       package: package(),

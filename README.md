@@ -35,6 +35,30 @@ GET /events?status=published&starts_at[gte]=2024-01-01&sort=-starts_at&limit=20
 
 Same query. Same Flop power underneath. Better developer experience on top.
 
+## When to Use FlopRest
+
+**Building a Phoenix HTML/LiveView app?** Use [Flop Phoenix](https://hexdocs.pm/flop_phoenix) — it provides UI components for pagination, tables, and filters.
+
+**Building a JSON API?** Use FlopRest — it transforms REST-style query parameters that frontend developers expect.
+
+## Frontend Integration
+
+Standard JavaScript works out of the box:
+
+```javascript
+// No special serialization needed
+const params = new URLSearchParams({
+  status: 'published',
+  'created_at[gte]': '2024-01-01',
+  sort: '-created_at',
+  limit: '20'
+});
+
+fetch(`/api/events?${params}`);
+```
+
+Works naturally with TanStack Query, SWR, RTK Query, axios, or any HTTP client.
+
 ## Installation
 
 Add `flop_rest` to your list of dependencies in `mix.exs`:

@@ -3,7 +3,7 @@ defmodule FlopRest.PaginationTest do
 
   alias FlopRest.Pagination
 
-  doctest FlopRest.Pagination
+  doctest Pagination
 
   describe "transform/1 with no pagination" do
     test "returns empty map for no pagination params" do

@@ -3,7 +3,7 @@ defmodule FlopRest.OperatorsTest do
 
   alias FlopRest.Operators
 
-  doctest FlopRest.Operators
+  doctest Operators
 
   describe "to_flop/1" do
     test "converts comparison operators" do

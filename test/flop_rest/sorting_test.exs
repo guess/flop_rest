@@ -3,7 +3,7 @@ defmodule FlopRest.SortingTest do
 
   alias FlopRest.Sorting
 
-  doctest FlopRest.Sorting
+  doctest Sorting
 
   describe "parse/1" do
     test "returns empty map for nil" do

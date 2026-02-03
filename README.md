@@ -42,7 +42,7 @@ Add `flop_rest` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:flop_rest, "~> 0.1.0"},
+    {:flop_rest, "~> 0.1"},
     {:flop, "~> 0.26"}
   ]
 end
@@ -89,29 +89,29 @@ status[in][]=draft&status[in][]=review  →  %{field: "status", op: "in", value:
 
 ### Operator Reference
 
-| REST Operator | Flop Operator | Description |
-|---------------|---------------|-------------|
-| `eq` | `==` | Equal (also bare value) |
-| `ne` | `!=` | Not equal |
-| `lt` | `<` | Less than |
-| `lte` | `<=` | Less than or equal |
-| `gt` | `>` | Greater than |
-| `gte` | `>=` | Greater than or equal |
-| `in` | `in` | In list |
-| `not_in` | `not_in` | Not in list |
-| `contains` | `contains` | Array contains |
-| `not_contains` | `not_contains` | Array does not contain |
-| `like` | `like` | SQL LIKE |
-| `not_like` | `not_like` | SQL NOT LIKE |
-| `like_and` | `like_and` | LIKE with AND |
-| `like_or` | `like_or` | LIKE with OR |
-| `ilike` | `ilike` | Case-insensitive LIKE |
-| `not_ilike` | `not_ilike` | Case-insensitive NOT LIKE |
-| `ilike_and` | `ilike_and` | Case-insensitive LIKE with AND |
-| `ilike_or` | `ilike_or` | Case-insensitive LIKE with OR |
-| `empty` | `empty` | Is NULL |
-| `not_empty` | `not_empty` | Is NOT NULL |
-| `search` | `=~` | Search (configurable in Flop) |
+| REST Operator  | Flop Operator  | Description                    |
+| -------------- | -------------- | ------------------------------ |
+| `eq`           | `==`           | Equal (also bare value)        |
+| `ne`           | `!=`           | Not equal                      |
+| `lt`           | `<`            | Less than                      |
+| `lte`          | `<=`           | Less than or equal             |
+| `gt`           | `>`            | Greater than                   |
+| `gte`          | `>=`           | Greater than or equal          |
+| `in`           | `in`           | In list                        |
+| `not_in`       | `not_in`       | Not in list                    |
+| `contains`     | `contains`     | Array contains                 |
+| `not_contains` | `not_contains` | Array does not contain         |
+| `like`         | `like`         | SQL LIKE                       |
+| `not_like`     | `not_like`     | SQL NOT LIKE                   |
+| `like_and`     | `like_and`     | LIKE with AND                  |
+| `like_or`      | `like_or`      | LIKE with OR                   |
+| `ilike`        | `ilike`        | Case-insensitive LIKE          |
+| `not_ilike`    | `not_ilike`    | Case-insensitive NOT LIKE      |
+| `ilike_and`    | `ilike_and`    | Case-insensitive LIKE with AND |
+| `ilike_or`     | `ilike_or`     | Case-insensitive LIKE with OR  |
+| `empty`        | `empty`        | Is NULL                        |
+| `not_empty`    | `not_empty`    | Is NOT NULL                    |
+| `search`       | `=~`           | Search (configurable in Flop)  |
 
 Unknown operators are passed through for Flop to validate.
 

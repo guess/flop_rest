@@ -74,15 +74,60 @@ end
 
 ## Usage
 
+Transform incoming REST parameters to Flop format:
+
 ```elixir
 def index(conn, params) do
   flop_params = FlopRest.normalize(params)
 
-  with {:ok, {events, meta}} <- Flop.validate_and_run(Event, flop_params) do
-    render(conn, :index, events: events, meta: meta)
+  with {:ok, {events, meta}} <- Flop.validate_and_run(Event, flop_params, for: Event) do
+    json(conn, %{data: events})
   end
 end
 ```
+
+### Building Pagination Links
+
+Use `build_path/2` to generate pagination links for API responses:
+
+```elixir
+def index(conn, params) do
+  flop_params = FlopRest.normalize(params)
+
+  with {:ok, {events, meta}} <- Flop.validate_and_run(Event, flop_params, for: Event) do
+    json(conn, %{
+      data: events,
+      links: %{
+        self: FlopRest.build_path(conn.request_path, meta.flop),
+        next: meta.has_next_page? && FlopRest.build_path(conn.request_path, meta.next_flop),
+        prev: meta.has_previous_page? && FlopRest.build_path(conn.request_path, meta.previous_flop)
+      }
+    })
+  end
+end
+```
+
+This produces links like:
+
+```json
+{
+  "data": [...],
+  "links": {
+    "self": "/events?limit=20&starting_after=abc123",
+    "next": "/events?limit=20&starting_after=xyz789",
+    "prev": "/events?limit=20&ending_before=abc123"
+  }
+}
+```
+
+Use `to_query/1` if you need to merge with other parameters:
+
+```elixir
+query = FlopRest.to_query(meta.next_flop)
+# => [limit: 20, starting_after: "xyz789"]
+```
+
+Both functions accept `Flop.t()` or `Flop.Meta.t()` structs.
 
 ## Filters
 

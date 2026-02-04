@@ -150,6 +150,9 @@ defmodule FlopRest do
   @doc """
   Builds a URL path with REST-style query params from a Flop struct.
 
+  Existing query parameters in the path are preserved and merged with Flop params.
+  Flop params take precedence over existing params with the same key.
+
   ## Examples
 
       iex> FlopRest.build_path("/events", %Flop{page: 2, page_size: 25})
@@ -157,6 +160,12 @@ defmodule FlopRest do
 
       iex> FlopRest.build_path("/events", %Flop{first: 20, after: "abc"})
       "/events?limit=20&starting_after=abc"
+
+      iex> FlopRest.build_path("/events?species=dog", %Flop{page: 2, page_size: 25})
+      "/events?page=2&page_size=25&species=dog"
+
+      iex> FlopRest.build_path("/events?page=1", %Flop{page: 3})
+      "/events?page=3"
 
       iex> FlopRest.build_path("/events", %Flop{})
       "/events"
@@ -167,6 +176,9 @@ defmodule FlopRest do
 
   @doc """
   Builds a URL path with REST-style query params from a Flop struct with options.
+
+  Existing query parameters in the path are preserved and merged with Flop params.
+  Flop params take precedence over existing params with the same key.
 
   ## Options
 
@@ -182,12 +194,23 @@ defmodule FlopRest do
       iex> FlopRest.build_path("/events", %Flop{filters: [%Flop.Filter{field: :status, op: :>=, value: 100}]}, [])
       "/events?status%5Bgte%5D=100"
 
+      iex> FlopRest.build_path("/events?category=music", %Flop{page: 2, page_size: 10}, [])
+      "/events?category=music&page=2&page_size=10"
+
   """
   @spec build_path(String.t(), Flop.t() | Flop.Meta.t(), keyword()) :: String.t()
   def build_path(path, flop_or_meta, opts) do
-    case to_query(flop_or_meta, opts) do
-      [] -> path
-      query -> "#{path}?#{Query.encode(query)}"
+    %URI{path: uri_path, query: existing_query} = URI.parse(path)
+    flop_query = to_query(flop_or_meta, opts)
+
+    merged_query =
+      (existing_query || "")
+      |> Query.decode()
+      |> Map.merge(Map.new(flop_query, fn {k, v} -> {to_string(k), v} end))
+
+    case merged_query do
+      empty when empty == %{} -> uri_path
+      query -> "#{uri_path}?#{Query.encode(query)}"
     end
   end
 end

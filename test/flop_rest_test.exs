@@ -229,4 +229,50 @@ defmodule FlopRestTest do
       assert result == "/events?page=2&page_size=25"
     end
   end
+
+  describe "build_path with existing query params" do
+    test "merges with existing query params" do
+      flop = %Flop{page: 2, page_size: 25}
+
+      result = FlopRest.build_path("/events?species=dog", flop)
+
+      # Parse and verify all params are present
+      %URI{path: path, query: query} = URI.parse(result)
+      params = URI.decode_query(query)
+
+      assert path == "/events"
+      assert params["species"] == "dog"
+      assert params["page"] == "2"
+      assert params["page_size"] == "25"
+    end
+
+    test "flop params take precedence over existing params" do
+      flop = %Flop{page: 3, page_size: 25}
+
+      result = FlopRest.build_path("/events?page=1&species=dog", flop)
+
+      %URI{query: query} = URI.parse(result)
+      params = URI.decode_query(query)
+
+      assert params["page"] == "3"
+      assert params["species"] == "dog"
+    end
+
+    test "preserves path when merging" do
+      flop = %Flop{page: 2, page_size: 25}
+
+      result = FlopRest.build_path("/api/v1/events?species=dog", flop)
+
+      %URI{path: path} = URI.parse(result)
+      assert path == "/api/v1/events"
+    end
+
+    test "handles empty flop with existing params" do
+      flop = %Flop{}
+
+      result = FlopRest.build_path("/events?species=dog", flop)
+
+      assert result == "/events?species=dog"
+    end
+  end
 end

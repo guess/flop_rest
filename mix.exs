@@ -1,7 +1,7 @@
 defmodule FlopRest.MixProject do
   use Mix.Project
 
-  @version "0.3.0"
+  @version "0.4.0"
   @source_url "https://github.com/guess/flop_rest"
 
   def project do
@@ -9,6 +9,7 @@ defmodule FlopRest.MixProject do
       app: :flop_rest,
       version: @version,
       elixir: "~> 1.16",
+      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       name: "FlopRest",
@@ -22,6 +23,9 @@ defmodule FlopRest.MixProject do
       dialyzer: [plt_add_apps: [:mix]]
     ]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   def application do
     [

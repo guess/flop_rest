@@ -21,11 +21,63 @@ defmodule FlopRest.Filters do
   """
   @spec extract(map()) :: [map()]
   def extract(params) do
+    {filters, _extra_params} = extract(params, nil)
+    filters
+  end
+
+  @doc """
+  Extracts filters from params map, optionally filtering by a set of allowed fields.
+
+  When `filterable` is provided, only fields in the set become filters.
+  Other params are returned as the second element of the tuple.
+
+  ## Parameters
+
+    * `params` - The params map to extract filters from
+    * `filterable` - A MapSet of string field names that are allowed as filters,
+      or `nil` to allow all fields
+
+  ## Returns
+
+  A tuple of `{filters, extra_params}` where:
+    * `filters` - List of filter maps for filterable fields
+    * `extra_params` - Map of params that weren't converted to filters
+
+  ## Examples
+
+      iex> FlopRest.Filters.extract(%{"name" => "Fido", "custom" => "value"}, MapSet.new(["name"]))
+      {[%{"field" => "name", "op" => "==", "value" => "Fido"}], %{"custom" => "value"}}
+
+  """
+  @spec extract(map(), MapSet.t(String.t()) | nil) :: {[map()], map()}
+  def extract(params, filterable) do
     reserved = reserved_keys()
 
     params
     |> Enum.reject(fn {key, _value} -> key in reserved end)
-    |> Enum.flat_map(&expand_filter/1)
+    |> split_by_filterable(filterable)
+  end
+
+  defp split_by_filterable(params, nil) do
+    {Enum.flat_map(params, &expand_filter/1), %{}}
+  end
+
+  defp split_by_filterable(params, filterable) do
+    {filter_params, extra_params} =
+      Enum.split_with(params, fn {key, _value} ->
+        base_field = extract_base_field(key)
+        MapSet.member?(filterable, base_field)
+      end)
+
+    {Enum.flat_map(filter_params, &expand_filter/1), Map.new(extra_params)}
+  end
+
+  defp extract_base_field(key) do
+    # Handle both "field" and "field[op]" formats
+    case String.split(key, "[", parts: 2) do
+      [base | _] -> base
+      _ -> key
+    end
   end
 
   defp reserved_keys do

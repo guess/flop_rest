@@ -84,8 +84,37 @@ defmodule FlopRest do
 
   """
   @spec normalize(map()) :: map()
-  def normalize(params) when is_map(params) do
-    filters = Filters.extract(params)
+  def normalize(params) when is_map(params), do: normalize(params, [])
+
+  @doc """
+  Transforms REST-style params to Flop format with options.
+
+  ## Options
+
+    * `:for` - Schema module for filtering params. When provided, only fields
+      in the schema's `filterable` list become filters. Other params are kept
+      in the result at the root level.
+
+  ## Examples
+
+      iex> FlopRest.normalize(%{"status" => "published"}, [])
+      %{"filters" => [%{"field" => "status", "op" => "==", "value" => "published"}]}
+
+      # With a schema that has filterable: [:name, :age]
+      # "custom_field" is not filterable, so it stays at root level
+      FlopRest.normalize(%{"name" => "Fido", "custom_field" => "value"}, for: MyApp.Pet)
+      # => %{
+      #   "filters" => [%{"field" => "name", "op" => "==", "value" => "Fido"}],
+      #   "custom_field" => "value"
+      # }
+
+  """
+  @spec normalize(map(), keyword()) :: map()
+  def normalize(params, opts) when is_map(params) do
+    schema = Keyword.get(opts, :for)
+    filterable = get_filterable_fields(schema)
+
+    {filters, extra_params} = Filters.extract(params, filterable)
     pagination = Pagination.transform(params)
     sorting = Sorting.parse(Map.get(params, "sort"))
 
@@ -93,6 +122,16 @@ defmodule FlopRest do
     |> maybe_put("filters", filters)
     |> Map.merge(pagination)
     |> Map.merge(sorting)
+    |> Map.merge(extra_params)
+  end
+
+  defp get_filterable_fields(nil), do: nil
+
+  defp get_filterable_fields(schema) when is_atom(schema) do
+    schema
+    |> struct()
+    |> Flop.Schema.filterable()
+    |> MapSet.new(&to_string/1)
   end
 
   defp maybe_put(map, _key, []), do: map

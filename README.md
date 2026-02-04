@@ -76,7 +76,7 @@ Add `flop_rest` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:flop_rest, "~> 0.3"},
+    {:flop_rest, "~> 0.4"},
     {:flop, "~> 0.26"}
   ]
 end
@@ -92,6 +92,31 @@ def index(conn, params) do
 
   with {:ok, {events, meta}} <- Flop.validate_and_run(Event, flop_params, for: Event) do
     json(conn, %{data: events})
+  end
+end
+```
+
+### Schema-Aware Filtering
+
+Pass the `:for` option to restrict filters to your schema's `filterable` fields. Non-filterable params are kept in the result at the root level for your own handling:
+
+```elixir
+# Given a schema with filterable: [:name, :status]
+FlopRest.normalize(%{"name" => "Fido", "custom_field" => "value"}, for: Pet)
+# => %{
+#   "filters" => [%{"field" => "name", "op" => "==", "value" => "Fido"}],
+#   "custom_field" => "value"
+# }
+```
+
+This matches Flop's API conventions and lets you safely pass user params while keeping non-filter data accessible:
+
+```elixir
+def index(conn, params) do
+  flop_params = FlopRest.normalize(params, for: Pet)
+
+  with {:ok, {pets, meta}} <- Flop.validate_and_run(Pet, flop_params, for: Pet) do
+    json(conn, %{data: pets})
   end
 end
 ```

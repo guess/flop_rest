@@ -125,6 +125,79 @@ defmodule FlopRest.FiltersTest do
     end
   end
 
+  describe "extract/2" do
+    test "returns {filters, extra_params} tuple" do
+      filterable = MapSet.new(["name"])
+      params = %{"name" => "Fido", "custom" => "value"}
+
+      {filters, extra_params} = Filters.extract(params, filterable)
+
+      assert [%{"field" => "name", "op" => "==", "value" => "Fido"}] = filters
+      assert %{"custom" => "value"} = extra_params
+    end
+
+    test "with nil filterable returns all as filters and empty extra_params" do
+      params = %{"name" => "Fido", "age" => "5"}
+
+      {filters, extra_params} = Filters.extract(params, nil)
+
+      assert length(filters) == 2
+      assert %{} = extra_params
+    end
+
+    test "handles operators on filterable fields" do
+      filterable = MapSet.new(["amount"])
+      params = %{"amount" => %{"gte" => "100"}, "custom" => "value"}
+
+      {filters, extra_params} = Filters.extract(params, filterable)
+
+      assert [%{"field" => "amount", "op" => ">=", "value" => "100"}] = filters
+      assert %{"custom" => "value"} = extra_params
+    end
+
+    test "handles multiple operators on same filterable field" do
+      filterable = MapSet.new(["amount"])
+      params = %{"amount" => %{"gte" => "10", "lte" => "100"}}
+
+      {filters, extra_params} = Filters.extract(params, filterable)
+
+      assert length(filters) == 2
+      assert %{"field" => "amount", "op" => ">=", "value" => "10"} in filters
+      assert %{"field" => "amount", "op" => "<=", "value" => "100"} in filters
+      assert extra_params == %{}
+    end
+
+    test "non-filterable fields go to extra_params" do
+      filterable = MapSet.new(["name"])
+      params = %{"name" => "Fido", "internal_code" => "ABC123", "unknown" => "field"}
+
+      {filters, extra_params} = Filters.extract(params, filterable)
+
+      assert [%{"field" => "name", "op" => "==", "value" => "Fido"}] = filters
+      assert extra_params == %{"internal_code" => "ABC123", "unknown" => "field"}
+    end
+
+    test "reserved keys excluded from both filters and extra_params" do
+      filterable = MapSet.new(["name"])
+      params = %{"name" => "Fido", "sort" => "-created_at", "limit" => "10", "page" => "2"}
+
+      {filters, extra_params} = Filters.extract(params, filterable)
+
+      assert [%{"field" => "name", "op" => "==", "value" => "Fido"}] = filters
+      assert extra_params == %{}
+    end
+
+    test "empty filterable set returns all non-reserved params as extra" do
+      filterable = MapSet.new([])
+      params = %{"name" => "Fido", "age" => "5"}
+
+      {filters, extra_params} = Filters.extract(params, filterable)
+
+      assert filters == []
+      assert extra_params == %{"name" => "Fido", "age" => "5"}
+    end
+  end
+
   describe "to_rest/1" do
     test "returns empty map for nil" do
       assert %{} = Filters.to_rest(nil)

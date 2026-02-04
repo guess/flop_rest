@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-02-04
+
+### Added
+
+- `FlopRest.normalize/2` with `:for` option for schema-aware filtering. When a schema is provided, only fields in the schema's `filterable` list become filters. Non-filterable params are kept in the result at the root level for custom handling.
+- `FlopRest.Filters.extract/2` accepts a `MapSet` of filterable field names and returns a `{filters, extra_params}` tuple.
+
 ## [0.3.0] - 2025-02-04
 
 ### Changed
@@ -48,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Page-based: `page`, `page_size`
   - Offset-based: `offset`, `limit`
 
+[0.4.0]: https://github.com/guess/flop_rest/releases/tag/v0.4.0
 [0.3.0]: https://github.com/guess/flop_rest/releases/tag/v0.3.0
 [0.2.0]: https://github.com/guess/flop_rest/releases/tag/v0.2.0
 [0.1.0]: https://github.com/guess/flop_rest/releases/tag/v0.1.0

@@ -93,6 +93,109 @@ defmodule FlopRestTest do
     end
   end
 
+  describe "normalize/2 with :for option" do
+    alias FlopRest.TestSchema.Pet
+
+    test "only filterable fields become filters" do
+      params = %{"name" => "Fido", "species" => "dog", "internal_code" => "ABC123"}
+
+      result = FlopRest.normalize(params, for: Pet)
+
+      # name and species are filterable
+      assert length(result["filters"]) == 2
+      assert %{"field" => "name", "op" => "==", "value" => "Fido"} in result["filters"]
+      assert %{"field" => "species", "op" => "==", "value" => "dog"} in result["filters"]
+    end
+
+    test "non-filterable fields are kept in result at root level" do
+      params = %{"name" => "Fido", "internal_code" => "ABC123", "custom_field" => "value"}
+
+      result = FlopRest.normalize(params, for: Pet)
+
+      assert [%{"field" => "name", "op" => "==", "value" => "Fido"}] = result["filters"]
+      assert result["internal_code"] == "ABC123"
+      assert result["custom_field"] == "value"
+    end
+
+    test "operators work on filterable fields" do
+      params = %{"age" => %{"gte" => "5", "lte" => "10"}, "internal_code" => "ABC123"}
+
+      result = FlopRest.normalize(params, for: Pet)
+
+      assert length(result["filters"]) == 2
+      assert %{"field" => "age", "op" => ">=", "value" => "5"} in result["filters"]
+      assert %{"field" => "age", "op" => "<=", "value" => "10"} in result["filters"]
+      assert result["internal_code"] == "ABC123"
+    end
+
+    test "pagination unaffected by schema" do
+      params = %{"name" => "Fido", "page" => "2", "page_size" => "25"}
+
+      result = FlopRest.normalize(params, for: Pet)
+
+      assert result["page"] == 2
+      assert result["page_size"] == 25
+      assert [%{"field" => "name"}] = result["filters"]
+    end
+
+    test "sorting unaffected by schema" do
+      params = %{"name" => "Fido", "sort" => "-name,age"}
+
+      result = FlopRest.normalize(params, for: Pet)
+
+      assert result["order_by"] == ["name", "age"]
+      assert result["order_directions"] == ["desc", "asc"]
+      assert [%{"field" => "name"}] = result["filters"]
+    end
+
+    test "for: nil behaves same as normalize/1" do
+      params = %{"name" => "Fido", "custom" => "value"}
+
+      result_with_nil = FlopRest.normalize(params, for: nil)
+      result_without = FlopRest.normalize(params)
+
+      # With nil schema, all params become filters, no extra params
+      assert result_with_nil == result_without
+      assert length(result_with_nil["filters"]) == 2
+      refute Map.has_key?(result_with_nil, "custom")
+    end
+
+    test "extra params don't conflict with Flop keys" do
+      params = %{
+        "name" => "Fido",
+        "internal_code" => "ABC123",
+        "sort" => "-name",
+        "page" => "1"
+      }
+
+      result = FlopRest.normalize(params, for: Pet)
+
+      # Flop keys from transforms
+      assert result["order_by"] == ["name"]
+      assert result["page"] == 1
+      assert [%{"field" => "name"}] = result["filters"]
+
+      # Extra param
+      assert result["internal_code"] == "ABC123"
+    end
+
+    test "empty params with schema returns empty map" do
+      result = FlopRest.normalize(%{}, for: Pet)
+
+      assert result == %{}
+    end
+
+    test "all non-filterable params returns only extra params" do
+      params = %{"internal_code" => "ABC123", "unknown" => "field"}
+
+      result = FlopRest.normalize(params, for: Pet)
+
+      refute Map.has_key?(result, "filters")
+      assert result["internal_code"] == "ABC123"
+      assert result["unknown"] == "field"
+    end
+  end
+
   describe "to_query/1" do
     test "returns empty map for empty flop" do
       assert %{} = FlopRest.to_query(%Flop{})

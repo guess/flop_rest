@@ -28,7 +28,7 @@ mix docs
 
 ## Architecture
 
-FlopRest is a pure transformation library that converts Stripe-style REST query parameters into Flop format. It has no runtime dependencies beyond the standard library.
+FlopRest is a pure transformation library that converts Stripe-style REST query parameters into Flop format. It depends on Flop and Plug at runtime.
 
 ### Module Structure
 

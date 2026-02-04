@@ -1,10 +1,16 @@
-# FlopRest
-
-[![Hex.pm](https://img.shields.io/hexpm/v/flop_rest.svg)](https://hex.pm/packages/flop_rest)
-[![Docs](https://img.shields.io/badge/hex-docs-blue.svg)](https://hexdocs.pm/flop_rest)
-[![CI](https://github.com/guess/flop_rest/actions/workflows/ci.yml/badge.svg)](https://github.com/guess/flop_rest/actions/workflows/ci.yml)
+# 🔄 FlopRest
 
 REST-friendly query parameters for [Flop](https://github.com/woylie/flop).
+
+- **🎯 Stripe-Style Parameters**: Intuitive `field[operator]=value` syntax that API consumers expect
+- **🔀 All Pagination Types**: Cursor-based, page-based, and offset-based pagination
+- **🔗 Pagination Links**: Generate `next`/`prev` URLs from Flop metadata with `build_path/2`
+- **⚡ Frontend-Ready**: Works naturally with URLSearchParams, axios, TanStack Query, and more
+
+[![Hex.pm](https://img.shields.io/hexpm/v/flop_rest.svg)](https://hex.pm/packages/flop_rest)
+[![Documentation](https://img.shields.io/badge/docs-hexdocs-blue.svg)](https://hexdocs.pm/flop_rest)
+[![CI](https://github.com/guess/flop_rest/actions/workflows/ci.yml/badge.svg)](https://github.com/guess/flop_rest/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/guess/flop_rest/blob/main/LICENSE)
 
 <div align="center">
     <img src="https://github.com/guess/flop_rest/raw/main/docs/flop_rest.png" alt="FlopRest" width="200">

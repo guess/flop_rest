@@ -94,8 +94,8 @@ defmodule FlopRestTest do
   end
 
   describe "to_query/1" do
-    test "returns empty list for empty flop" do
-      assert [] = FlopRest.to_query(%Flop{})
+    test "returns empty map for empty flop" do
+      assert %{} = FlopRest.to_query(%Flop{})
     end
 
     test "converts full flop with filters, sorting, and pagination" do
@@ -112,12 +112,13 @@ defmodule FlopRestTest do
 
       result = FlopRest.to_query(flop)
 
-      assert {:status, "active"} in result
-      assert {"amount[gte]", 100} in result
-      assert {:sort, "-created_at"} in result
-      assert {:limit, 20} in result
-      assert {:starting_after, "abc123"} in result
-      assert length(result) == 5
+      assert result == %{
+               "status" => "active",
+               "amount[gte]" => 100,
+               "sort" => "-created_at",
+               "limit" => 20,
+               "starting_after" => "abc123"
+             }
     end
 
     test "converts flop with only filters" do
@@ -125,7 +126,7 @@ defmodule FlopRestTest do
 
       result = FlopRest.to_query(flop)
 
-      assert result == [status: "active"]
+      assert result == %{"status" => "active"}
     end
 
     test "converts flop with only sorting" do
@@ -133,7 +134,7 @@ defmodule FlopRestTest do
 
       result = FlopRest.to_query(flop)
 
-      assert result == [sort: "name"]
+      assert result == %{"sort" => "name"}
     end
 
     test "converts flop with only pagination" do
@@ -141,7 +142,7 @@ defmodule FlopRestTest do
 
       result = FlopRest.to_query(flop)
 
-      assert result == [page: 2, page_size: 25]
+      assert result == %{"page" => 2, "page_size" => 25}
     end
 
     test "accepts Flop.Meta struct" do
@@ -150,7 +151,7 @@ defmodule FlopRestTest do
 
       result = FlopRest.to_query(meta)
 
-      assert result == [page: 2, page_size: 25]
+      assert result == %{"page" => 2, "page_size" => 25}
     end
   end
 
@@ -160,7 +161,7 @@ defmodule FlopRestTest do
 
       result = FlopRest.to_query(flop, [])
 
-      assert result == [page: 2, page_size: 25]
+      assert result == %{"page" => 2, "page_size" => 25}
     end
   end
 

@@ -64,12 +64,12 @@ defmodule FlopRest.SortingTest do
   end
 
   describe "to_rest/1" do
-    test "returns empty list for nil order_by" do
-      assert [] = Sorting.to_rest(%Flop{order_by: nil})
+    test "returns empty map for nil order_by" do
+      assert %{} = Sorting.to_rest(%Flop{order_by: nil})
     end
 
-    test "returns empty list for empty order_by" do
-      assert [] = Sorting.to_rest(%Flop{order_by: []})
+    test "returns empty map for empty order_by" do
+      assert %{} = Sorting.to_rest(%Flop{order_by: []})
     end
 
     test "converts single ascending field" do
@@ -77,7 +77,7 @@ defmodule FlopRest.SortingTest do
 
       result = Sorting.to_rest(flop)
 
-      assert result == [sort: "name"]
+      assert result == %{"sort" => "name"}
     end
 
     test "converts single descending field" do
@@ -85,7 +85,7 @@ defmodule FlopRest.SortingTest do
 
       result = Sorting.to_rest(flop)
 
-      assert result == [sort: "-name"]
+      assert result == %{"sort" => "-name"}
     end
 
     test "converts multiple fields with mixed directions" do
@@ -93,7 +93,7 @@ defmodule FlopRest.SortingTest do
 
       result = Sorting.to_rest(flop)
 
-      assert result == [sort: "name,-age,created_at"]
+      assert result == %{"sort" => "name,-age,created_at"}
     end
 
     test "defaults to ascending when direction is missing" do
@@ -101,7 +101,7 @@ defmodule FlopRest.SortingTest do
 
       result = Sorting.to_rest(flop)
 
-      assert result == [sort: "-name,age"]
+      assert result == %{"sort" => "-name,age"}
     end
 
     test "defaults to ascending when directions is nil" do
@@ -109,7 +109,7 @@ defmodule FlopRest.SortingTest do
 
       result = Sorting.to_rest(flop)
 
-      assert result == [sort: "name"]
+      assert result == %{"sort" => "name"}
     end
 
     test "handles desc_nulls_first as descending" do
@@ -117,7 +117,7 @@ defmodule FlopRest.SortingTest do
 
       result = Sorting.to_rest(flop)
 
-      assert result == [sort: "-name"]
+      assert result == %{"sort" => "-name"}
     end
 
     test "handles desc_nulls_last as descending" do
@@ -125,7 +125,7 @@ defmodule FlopRest.SortingTest do
 
       result = Sorting.to_rest(flop)
 
-      assert result == [sort: "-name"]
+      assert result == %{"sort" => "-name"}
     end
 
     test "handles asc_nulls_first as ascending" do
@@ -133,7 +133,7 @@ defmodule FlopRest.SortingTest do
 
       result = Sorting.to_rest(flop)
 
-      assert result == [sort: "name"]
+      assert result == %{"sort" => "name"}
     end
 
     test "handles asc_nulls_last as ascending" do
@@ -141,7 +141,7 @@ defmodule FlopRest.SortingTest do
 
       result = Sorting.to_rest(flop)
 
-      assert result == [sort: "name"]
+      assert result == %{"sort" => "name"}
     end
   end
 end

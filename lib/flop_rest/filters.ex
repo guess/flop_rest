@@ -62,31 +62,31 @@ defmodule FlopRest.Filters do
   ## Examples
 
       iex> FlopRest.Filters.to_rest([%Flop.Filter{field: :status, op: :==, value: "active"}])
-      [status: "active"]
+      %{"status" => "active"}
 
       iex> FlopRest.Filters.to_rest([%Flop.Filter{field: :amount, op: :>=, value: 100}])
-      [{"amount[gte]", 100}]
+      %{"amount[gte]" => 100}
 
       iex> FlopRest.Filters.to_rest([])
-      []
+      %{}
 
       iex> FlopRest.Filters.to_rest(nil)
-      []
+      %{}
 
   """
-  @spec to_rest([Filter.t()] | nil) :: keyword()
-  def to_rest(nil), do: []
-  def to_rest([]), do: []
+  @spec to_rest([Filter.t()] | nil) :: map()
+  def to_rest(nil), do: %{}
+  def to_rest([]), do: %{}
 
   def to_rest(filters) when is_list(filters) do
-    Enum.map(filters, &filter_to_rest/1)
+    Map.new(filters, &filter_to_rest/1)
   end
 
   defp filter_to_rest(%Filter{field: field, op: op, value: value}) do
     field_string = to_string(field)
 
     case Operators.to_rest(op) do
-      nil -> {String.to_atom(field_string), value}
+      nil -> {field_string, value}
       rest_op -> {"#{field_string}[#{rest_op}]", value}
     end
   end

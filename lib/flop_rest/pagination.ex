@@ -117,22 +117,22 @@ defmodule FlopRest.Pagination do
   ## Examples
 
       iex> FlopRest.Pagination.to_rest(%Flop{first: 20, after: "abc"})
-      [limit: 20, starting_after: "abc"]
+      %{"limit" => 20, "starting_after" => "abc"}
 
       iex> FlopRest.Pagination.to_rest(%Flop{last: 20, before: "xyz"})
-      [limit: 20, ending_before: "xyz"]
+      %{"limit" => 20, "ending_before" => "xyz"}
 
       iex> FlopRest.Pagination.to_rest(%Flop{page: 2, page_size: 25})
-      [page: 2, page_size: 25]
+      %{"page" => 2, "page_size" => 25}
 
       iex> FlopRest.Pagination.to_rest(%Flop{offset: 50, limit: 25})
-      [offset: 50, limit: 25]
+      %{"offset" => 50, "limit" => 25}
 
       iex> FlopRest.Pagination.to_rest(%Flop{})
-      []
+      %{}
 
   """
-  @spec to_rest(Flop.t()) :: keyword()
+  @spec to_rest(Flop.t()) :: map()
   def to_rest(%Flop{} = flop) do
     flop |> detect_rest_pagination_type() |> build_rest_pagination(flop)
   end
@@ -153,31 +153,28 @@ defmodule FlopRest.Pagination do
   defp detect_rest_pagination_type(_flop), do: :none
 
   defp build_rest_pagination(:cursor_forward, flop) do
-    []
-    |> maybe_prepend(:starting_after, flop.after)
-    |> maybe_prepend(:limit, flop.first)
+    %{}
+    |> maybe_put("limit", flop.first)
+    |> maybe_put("starting_after", flop.after)
   end
 
   defp build_rest_pagination(:cursor_backward, flop) do
-    []
-    |> maybe_prepend(:ending_before, flop.before)
-    |> maybe_prepend(:limit, flop.last)
+    %{}
+    |> maybe_put("limit", flop.last)
+    |> maybe_put("ending_before", flop.before)
   end
 
   defp build_rest_pagination(:page, flop) do
-    []
-    |> maybe_prepend(:page_size, flop.page_size)
-    |> maybe_prepend(:page, flop.page)
+    %{}
+    |> maybe_put("page", flop.page)
+    |> maybe_put("page_size", flop.page_size)
   end
 
   defp build_rest_pagination(:offset, flop) do
-    []
-    |> maybe_prepend(:limit, flop.limit)
-    |> maybe_prepend(:offset, flop.offset)
+    %{}
+    |> maybe_put("offset", flop.offset)
+    |> maybe_put("limit", flop.limit)
   end
 
-  defp build_rest_pagination(:none, _flop), do: []
-
-  defp maybe_prepend(list, _key, nil), do: list
-  defp maybe_prepend(list, key, value), do: [{key, value} | list]
+  defp build_rest_pagination(:none, _flop), do: %{}
 end

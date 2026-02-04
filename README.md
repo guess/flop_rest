@@ -66,7 +66,7 @@ Add `flop_rest` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:flop_rest, "~> 0.2"},
+    {:flop_rest, "~> 0.3"},
     {:flop, "~> 0.26"}
   ]
 end
@@ -120,11 +120,11 @@ This produces links like:
 }
 ```
 
-Use `to_query/1` if you need to merge with other parameters:
+Use `to_query/1` if you need the raw map to merge with other parameters:
 
 ```elixir
 query = FlopRest.to_query(meta.next_flop)
-# => [limit: 20, starting_after: "xyz789"]
+# => %{"limit" => 20, "starting_after" => "xyz789"}
 ```
 
 Both functions accept `Flop.t()` or `Flop.Meta.t()` structs.

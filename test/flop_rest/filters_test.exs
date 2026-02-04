@@ -126,12 +126,12 @@ defmodule FlopRest.FiltersTest do
   end
 
   describe "to_rest/1" do
-    test "returns empty list for nil" do
-      assert [] = Filters.to_rest(nil)
+    test "returns empty map for nil" do
+      assert %{} = Filters.to_rest(nil)
     end
 
-    test "returns empty list for empty list" do
-      assert [] = Filters.to_rest([])
+    test "returns empty map for empty list" do
+      assert %{} = Filters.to_rest([])
     end
 
     test "converts equality filter to bare param" do
@@ -139,7 +139,7 @@ defmodule FlopRest.FiltersTest do
 
       result = Filters.to_rest(filters)
 
-      assert result == [status: "active"]
+      assert result == %{"status" => "active"}
     end
 
     test "converts operator filter to nested param" do
@@ -147,7 +147,7 @@ defmodule FlopRest.FiltersTest do
 
       result = Filters.to_rest(filters)
 
-      assert result == [{"amount[gte]", 100}]
+      assert result == %{"amount[gte]" => 100}
     end
 
     test "converts multiple filters" do
@@ -158,9 +158,7 @@ defmodule FlopRest.FiltersTest do
 
       result = Filters.to_rest(filters)
 
-      assert {:status, "active"} in result
-      assert {"amount[gte]", 100} in result
-      assert length(result) == 2
+      assert result == %{"status" => "active", "amount[gte]" => 100}
     end
 
     test "converts in operator with list value" do
@@ -168,7 +166,7 @@ defmodule FlopRest.FiltersTest do
 
       result = Filters.to_rest(filters)
 
-      assert result == [{"status[in]", ["draft", "published"]}]
+      assert result == %{"status[in]" => ["draft", "published"]}
     end
 
     test "converts search operator" do
@@ -176,7 +174,7 @@ defmodule FlopRest.FiltersTest do
 
       result = Filters.to_rest(filters)
 
-      assert result == [{"name[search]", "john"}]
+      assert result == %{"name[search]" => "john"}
     end
 
     test "converts empty operator" do
@@ -184,7 +182,7 @@ defmodule FlopRest.FiltersTest do
 
       result = Filters.to_rest(filters)
 
-      assert result == [{"deleted_at[empty]", true}]
+      assert result == %{"deleted_at[empty]" => true}
     end
 
     test "converts ilike operator" do
@@ -192,7 +190,7 @@ defmodule FlopRest.FiltersTest do
 
       result = Filters.to_rest(filters)
 
-      assert result == [{"email[ilike]", "%@example.com"}]
+      assert result == %{"email[ilike]" => "%@example.com"}
     end
 
     test "handles string field names" do
@@ -200,7 +198,7 @@ defmodule FlopRest.FiltersTest do
 
       result = Filters.to_rest(filters)
 
-      assert result == [status: "active"]
+      assert result == %{"status" => "active"}
     end
   end
 end

@@ -106,19 +106,19 @@ defmodule FlopRest do
   ## Examples
 
       iex> FlopRest.to_query(%Flop{first: 20, after: "abc", order_by: [:name], order_directions: [:desc]})
-      [sort: "-name", limit: 20, starting_after: "abc"]
+      %{"limit" => 20, "sort" => "-name", "starting_after" => "abc"}
 
       iex> FlopRest.to_query(%Flop{page: 2, page_size: 25})
-      [page: 2, page_size: 25]
+      %{"page" => 2, "page_size" => 25}
 
       iex> FlopRest.to_query(%Flop{filters: [%Flop.Filter{field: :status, op: :==, value: "active"}]})
-      [status: "active"]
+      %{"status" => "active"}
 
       iex> FlopRest.to_query(%Flop{})
-      []
+      %{}
 
   """
-  @spec to_query(Flop.t() | Flop.Meta.t()) :: keyword()
+  @spec to_query(Flop.t() | Flop.Meta.t()) :: map()
   def to_query(flop_or_meta), do: to_query(flop_or_meta, [])
 
   @doc """
@@ -133,10 +133,10 @@ defmodule FlopRest do
   ## Examples
 
       iex> FlopRest.to_query(%Flop{page: 2, page_size: 25}, [])
-      [page: 2, page_size: 25]
+      %{"page" => 2, "page_size" => 25}
 
   """
-  @spec to_query(Flop.t() | Flop.Meta.t(), keyword()) :: keyword()
+  @spec to_query(Flop.t() | Flop.Meta.t(), keyword()) :: map()
   def to_query(%Flop.Meta{flop: flop}, opts), do: to_query(flop, opts)
 
   def to_query(%Flop{} = flop, _opts) do
@@ -144,7 +144,9 @@ defmodule FlopRest do
     sorting = Sorting.to_rest(flop)
     pagination = Pagination.to_rest(flop)
 
-    filters ++ sorting ++ pagination
+    filters
+    |> Map.merge(sorting)
+    |> Map.merge(pagination)
   end
 
   @doc """
@@ -206,7 +208,7 @@ defmodule FlopRest do
     merged_query =
       (existing_query || "")
       |> Query.decode()
-      |> Map.merge(Map.new(flop_query, fn {k, v} -> {to_string(k), v} end))
+      |> Map.merge(flop_query)
 
     case merged_query do
       empty when empty == %{} -> uri_path

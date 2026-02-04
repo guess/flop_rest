@@ -49,21 +49,21 @@ defmodule FlopRest.Sorting do
   ## Examples
 
       iex> FlopRest.Sorting.to_rest(%Flop{order_by: [:name], order_directions: [:asc]})
-      [sort: "name"]
+      %{"sort" => "name"}
 
       iex> FlopRest.Sorting.to_rest(%Flop{order_by: [:name], order_directions: [:desc]})
-      [sort: "-name"]
+      %{"sort" => "-name"}
 
       iex> FlopRest.Sorting.to_rest(%Flop{order_by: [:name, :age], order_directions: [:asc, :desc]})
-      [sort: "name,-age"]
+      %{"sort" => "name,-age"}
 
       iex> FlopRest.Sorting.to_rest(%Flop{})
-      []
+      %{}
 
   """
-  @spec to_rest(Flop.t()) :: keyword()
-  def to_rest(%Flop{order_by: nil}), do: []
-  def to_rest(%Flop{order_by: []}), do: []
+  @spec to_rest(Flop.t()) :: map()
+  def to_rest(%Flop{order_by: nil}), do: %{}
+  def to_rest(%Flop{order_by: []}), do: %{}
 
   def to_rest(%Flop{order_by: fields, order_directions: directions}) do
     directions = directions || []
@@ -76,7 +76,7 @@ defmodule FlopRest.Sorting do
         format_field(field, direction)
       end)
 
-    [sort: sort_string]
+    %{"sort" => sort_string}
   end
 
   defp format_field(field, :desc), do: "-#{field}"

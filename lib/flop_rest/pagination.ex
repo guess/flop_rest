@@ -8,6 +8,11 @@ defmodule FlopRest.Pagination do
   - **Page-based**: `page`, `page_size`
   - **Offset-based**: `offset`, `limit`
 
+  When only `limit` is provided, it defaults to cursor-based pagination
+  (`first`). This ensures Flop returns cursor metadata that can be used
+  for subsequent requests with `starting_after`/`ending_before`. To force
+  offset-based pagination, include `offset` (e.g., `offset=0`).
+
   No validation is performed - conflicting params are passed through
   for Flop to validate.
   """
@@ -25,11 +30,14 @@ defmodule FlopRest.Pagination do
       iex> FlopRest.Pagination.transform(%{"limit" => "20", "starting_after" => "abc"})
       %{"first" => 20, "after" => "abc"}
 
+      iex> FlopRest.Pagination.transform(%{"limit" => "20"})
+      %{"first" => 20}
+
       iex> FlopRest.Pagination.transform(%{"page" => "2", "page_size" => "25"})
       %{"page" => 2, "page_size" => 25}
 
-      iex> FlopRest.Pagination.transform(%{"offset" => "50", "limit" => "25"})
-      %{"offset" => 50, "limit" => 25}
+      iex> FlopRest.Pagination.transform(%{"offset" => "0", "limit" => "25"})
+      %{"offset" => 0, "limit" => 25}
 
   """
   @spec transform(map()) :: map()
@@ -53,7 +61,7 @@ defmodule FlopRest.Pagination do
       has_cursor -> :cursor
       has_page -> :page
       has_offset -> :offset
-      Map.has_key?(params, "limit") -> :offset
+      Map.has_key?(params, "limit") -> :cursor
       true -> :none
     end
   end

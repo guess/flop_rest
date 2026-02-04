@@ -12,6 +12,10 @@ defmodule FlopRest.PaginationTest do
   end
 
   describe "transform/1 with cursor-based pagination" do
+    test "transforms limit only to first (enables cursor metadata)" do
+      assert %{"first" => 20} = Pagination.transform(%{"limit" => "20"})
+    end
+
     test "transforms starting_after to after" do
       assert %{"after" => "cursor123"} = Pagination.transform(%{"starting_after" => "cursor123"})
     end
@@ -66,10 +70,6 @@ defmodule FlopRest.PaginationTest do
   describe "transform/1 with offset-based pagination" do
     test "transforms offset only" do
       assert %{"offset" => 50} = Pagination.transform(%{"offset" => "50"})
-    end
-
-    test "transforms limit only as offset-based" do
-      assert %{"limit" => 20} = Pagination.transform(%{"limit" => "20"})
     end
 
     test "transforms offset and limit" do

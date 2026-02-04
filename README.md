@@ -13,7 +13,7 @@ REST-friendly query parameters for [Flop](https://github.com/woylie/flop).
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/guess/flop_rest/blob/main/LICENSE)
 
 <div align="center">
-    <img src="https://github.com/guess/flop_rest/raw/main/docs/flop_rest.png" alt="FlopRest" width="200">
+    <img src="https://github.com/guess/flop_rest/raw/main/docs/flop_rest.png" alt="FlopRest" width="250">
 </div>
 
 ## The Problem

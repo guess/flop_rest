@@ -1,6 +1,6 @@
 defmodule FlopRest.Pagination do
   @moduledoc """
-  Transforms REST-style pagination params to Flop format.
+  Transforms REST-style pagination params to Flop format and vice versa.
 
   Supports three pagination types:
 
@@ -110,4 +110,74 @@ defmodule FlopRest.Pagination do
 
   defp parse_int(value) when is_binary(value), do: String.to_integer(value)
   defp parse_int(value) when is_integer(value), do: value
+
+  @doc """
+  Converts a Flop struct's pagination fields back to REST-style params.
+
+  ## Examples
+
+      iex> FlopRest.Pagination.to_rest(%Flop{first: 20, after: "abc"})
+      [limit: 20, starting_after: "abc"]
+
+      iex> FlopRest.Pagination.to_rest(%Flop{last: 20, before: "xyz"})
+      [limit: 20, ending_before: "xyz"]
+
+      iex> FlopRest.Pagination.to_rest(%Flop{page: 2, page_size: 25})
+      [page: 2, page_size: 25]
+
+      iex> FlopRest.Pagination.to_rest(%Flop{offset: 50, limit: 25})
+      [offset: 50, limit: 25]
+
+      iex> FlopRest.Pagination.to_rest(%Flop{})
+      []
+
+  """
+  @spec to_rest(Flop.t()) :: keyword()
+  def to_rest(%Flop{} = flop) do
+    flop |> detect_rest_pagination_type() |> build_rest_pagination(flop)
+  end
+
+  defp detect_rest_pagination_type(%Flop{first: first, after: cursor}) when not is_nil(first) or not is_nil(cursor),
+    do: :cursor_forward
+
+  defp detect_rest_pagination_type(%Flop{last: last, before: cursor}) when not is_nil(last) or not is_nil(cursor),
+    do: :cursor_backward
+
+  defp detect_rest_pagination_type(%Flop{page: page, page_size: page_size})
+       when not is_nil(page) or not is_nil(page_size),
+       do: :page
+
+  defp detect_rest_pagination_type(%Flop{offset: offset, limit: limit}) when not is_nil(offset) or not is_nil(limit),
+    do: :offset
+
+  defp detect_rest_pagination_type(_flop), do: :none
+
+  defp build_rest_pagination(:cursor_forward, flop) do
+    []
+    |> maybe_prepend(:starting_after, flop.after)
+    |> maybe_prepend(:limit, flop.first)
+  end
+
+  defp build_rest_pagination(:cursor_backward, flop) do
+    []
+    |> maybe_prepend(:ending_before, flop.before)
+    |> maybe_prepend(:limit, flop.last)
+  end
+
+  defp build_rest_pagination(:page, flop) do
+    []
+    |> maybe_prepend(:page_size, flop.page_size)
+    |> maybe_prepend(:page, flop.page)
+  end
+
+  defp build_rest_pagination(:offset, flop) do
+    []
+    |> maybe_prepend(:limit, flop.limit)
+    |> maybe_prepend(:offset, flop.offset)
+  end
+
+  defp build_rest_pagination(:none, _flop), do: []
+
+  defp maybe_prepend(list, _key, nil), do: list
+  defp maybe_prepend(list, key, value), do: [{key, value} | list]
 end

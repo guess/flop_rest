@@ -100,4 +100,106 @@ defmodule FlopRest.PaginationTest do
       assert "offset" in keys
     end
   end
+
+  describe "to_rest/1" do
+    test "returns empty list for empty flop" do
+      assert [] = Pagination.to_rest(%Flop{})
+    end
+
+    test "converts cursor forward pagination" do
+      flop = %Flop{first: 20, after: "abc"}
+
+      result = Pagination.to_rest(flop)
+
+      assert result == [limit: 20, starting_after: "abc"]
+    end
+
+    test "converts cursor forward with only first" do
+      flop = %Flop{first: 20}
+
+      result = Pagination.to_rest(flop)
+
+      assert result == [limit: 20]
+    end
+
+    test "converts cursor forward with only after" do
+      flop = %Flop{after: "abc"}
+
+      result = Pagination.to_rest(flop)
+
+      assert result == [starting_after: "abc"]
+    end
+
+    test "converts cursor backward pagination" do
+      flop = %Flop{last: 20, before: "xyz"}
+
+      result = Pagination.to_rest(flop)
+
+      assert result == [limit: 20, ending_before: "xyz"]
+    end
+
+    test "converts cursor backward with only last" do
+      flop = %Flop{last: 20}
+
+      result = Pagination.to_rest(flop)
+
+      assert result == [limit: 20]
+    end
+
+    test "converts cursor backward with only before" do
+      flop = %Flop{before: "xyz"}
+
+      result = Pagination.to_rest(flop)
+
+      assert result == [ending_before: "xyz"]
+    end
+
+    test "converts page-based pagination" do
+      flop = %Flop{page: 2, page_size: 25}
+
+      result = Pagination.to_rest(flop)
+
+      assert result == [page: 2, page_size: 25]
+    end
+
+    test "converts page-based with only page" do
+      flop = %Flop{page: 3}
+
+      result = Pagination.to_rest(flop)
+
+      assert result == [page: 3]
+    end
+
+    test "converts page-based with only page_size" do
+      flop = %Flop{page_size: 25}
+
+      result = Pagination.to_rest(flop)
+
+      assert result == [page_size: 25]
+    end
+
+    test "converts offset-based pagination" do
+      flop = %Flop{offset: 50, limit: 25}
+
+      result = Pagination.to_rest(flop)
+
+      assert result == [offset: 50, limit: 25]
+    end
+
+    test "converts offset-based with only offset" do
+      flop = %Flop{offset: 50}
+
+      result = Pagination.to_rest(flop)
+
+      assert result == [offset: 50]
+    end
+
+    test "converts offset-based with only limit" do
+      flop = %Flop{limit: 25}
+
+      result = Pagination.to_rest(flop)
+
+      assert result == [limit: 25]
+    end
+  end
 end

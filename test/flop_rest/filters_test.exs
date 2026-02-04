@@ -1,6 +1,7 @@
 defmodule FlopRest.FiltersTest do
   use ExUnit.Case, async: true
 
+  alias Flop.Filter
   alias FlopRest.Filters
 
   describe "extract/1" do
@@ -112,6 +113,94 @@ defmodule FlopRest.FiltersTest do
       assert [filter] = Filters.extract(params)
 
       assert filter == %{"field" => "email", "op" => "ilike", "value" => "%@example.com"}
+    end
+
+    test "handles nested map with multiple keys (passthrough)" do
+      # Edge case: nested map that doesn't match the Plug [] pattern
+      params = %{"meta" => %{"in" => %{"foo" => "bar", "baz" => "qux"}}}
+
+      assert [filter] = Filters.extract(params)
+
+      assert filter == %{"field" => "meta", "op" => "in", "value" => %{"foo" => "bar", "baz" => "qux"}}
+    end
+  end
+
+  describe "to_rest/1" do
+    test "returns empty list for nil" do
+      assert [] = Filters.to_rest(nil)
+    end
+
+    test "returns empty list for empty list" do
+      assert [] = Filters.to_rest([])
+    end
+
+    test "converts equality filter to bare param" do
+      filters = [%Filter{field: :status, op: :==, value: "active"}]
+
+      result = Filters.to_rest(filters)
+
+      assert result == [status: "active"]
+    end
+
+    test "converts operator filter to nested param" do
+      filters = [%Filter{field: :amount, op: :>=, value: 100}]
+
+      result = Filters.to_rest(filters)
+
+      assert result == [{"amount[gte]", 100}]
+    end
+
+    test "converts multiple filters" do
+      filters = [
+        %Filter{field: :status, op: :==, value: "active"},
+        %Filter{field: :amount, op: :>=, value: 100}
+      ]
+
+      result = Filters.to_rest(filters)
+
+      assert {:status, "active"} in result
+      assert {"amount[gte]", 100} in result
+      assert length(result) == 2
+    end
+
+    test "converts in operator with list value" do
+      filters = [%Filter{field: :status, op: :in, value: ["draft", "published"]}]
+
+      result = Filters.to_rest(filters)
+
+      assert result == [{"status[in]", ["draft", "published"]}]
+    end
+
+    test "converts search operator" do
+      filters = [%Filter{field: :name, op: :=~, value: "john"}]
+
+      result = Filters.to_rest(filters)
+
+      assert result == [{"name[search]", "john"}]
+    end
+
+    test "converts empty operator" do
+      filters = [%Filter{field: :deleted_at, op: :empty, value: true}]
+
+      result = Filters.to_rest(filters)
+
+      assert result == [{"deleted_at[empty]", true}]
+    end
+
+    test "converts ilike operator" do
+      filters = [%Filter{field: :email, op: :ilike, value: "%@example.com"}]
+
+      result = Filters.to_rest(filters)
+
+      assert result == [{"email[ilike]", "%@example.com"}]
+    end
+
+    test "handles string field names" do
+      filters = [%Filter{field: "status", op: :==, value: "active"}]
+
+      result = Filters.to_rest(filters)
+
+      assert result == [status: "active"]
     end
   end
 end

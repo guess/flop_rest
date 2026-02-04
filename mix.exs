@@ -31,6 +31,8 @@ defmodule FlopRest.MixProject do
 
   defp deps do
     [
+      {:flop, "~> 0.26"},
+      {:plug, "~> 1.0"},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:styler, "~> 1.4", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},

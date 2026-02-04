@@ -1,8 +1,9 @@
 defmodule FlopRest.Filters do
   @moduledoc """
-  Extracts and transforms REST-style filter params to Flop format.
+  Extracts and transforms REST-style filter params to Flop format and vice versa.
   """
 
+  alias Flop.Filter
   alias FlopRest.Operators
   alias FlopRest.Pagination
   alias FlopRest.Sorting
@@ -51,4 +52,42 @@ defmodule FlopRest.Filters do
   end
 
   defp normalize_value(value), do: value
+
+  @doc """
+  Converts a list of Flop.Filter structs back to REST-style params.
+
+  Equality filters (`:==`) become bare key-value params.
+  Other operators become nested params like `field[operator]`.
+
+  ## Examples
+
+      iex> FlopRest.Filters.to_rest([%Flop.Filter{field: :status, op: :==, value: "active"}])
+      [status: "active"]
+
+      iex> FlopRest.Filters.to_rest([%Flop.Filter{field: :amount, op: :>=, value: 100}])
+      [{"amount[gte]", 100}]
+
+      iex> FlopRest.Filters.to_rest([])
+      []
+
+      iex> FlopRest.Filters.to_rest(nil)
+      []
+
+  """
+  @spec to_rest([Filter.t()] | nil) :: keyword()
+  def to_rest(nil), do: []
+  def to_rest([]), do: []
+
+  def to_rest(filters) when is_list(filters) do
+    Enum.map(filters, &filter_to_rest/1)
+  end
+
+  defp filter_to_rest(%Filter{field: field, op: op, value: value}) do
+    field_string = to_string(field)
+
+    case Operators.to_rest(op) do
+      nil -> {String.to_atom(field_string), value}
+      rest_op -> {"#{field_string}[#{rest_op}]", value}
+    end
+  end
 end

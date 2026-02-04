@@ -1,6 +1,8 @@
 defmodule FlopRestTest do
   use ExUnit.Case, async: true
 
+  alias Flop.Filter
+
   doctest FlopRest
 
   describe "normalize/1" do
@@ -88,6 +90,143 @@ defmodule FlopRestTest do
       result = FlopRest.normalize(params)
 
       assert [%{"field" => "amount", "op" => "unknown_op", "value" => "100"}] = result["filters"]
+    end
+  end
+
+  describe "to_query/1" do
+    test "returns empty list for empty flop" do
+      assert [] = FlopRest.to_query(%Flop{})
+    end
+
+    test "converts full flop with filters, sorting, and pagination" do
+      flop = %Flop{
+        filters: [
+          %Filter{field: :status, op: :==, value: "active"},
+          %Filter{field: :amount, op: :>=, value: 100}
+        ],
+        order_by: [:created_at],
+        order_directions: [:desc],
+        first: 20,
+        after: "abc123"
+      }
+
+      result = FlopRest.to_query(flop)
+
+      assert {:status, "active"} in result
+      assert {"amount[gte]", 100} in result
+      assert {:sort, "-created_at"} in result
+      assert {:limit, 20} in result
+      assert {:starting_after, "abc123"} in result
+      assert length(result) == 5
+    end
+
+    test "converts flop with only filters" do
+      flop = %Flop{filters: [%Filter{field: :status, op: :==, value: "active"}]}
+
+      result = FlopRest.to_query(flop)
+
+      assert result == [status: "active"]
+    end
+
+    test "converts flop with only sorting" do
+      flop = %Flop{order_by: [:name], order_directions: [:asc]}
+
+      result = FlopRest.to_query(flop)
+
+      assert result == [sort: "name"]
+    end
+
+    test "converts flop with only pagination" do
+      flop = %Flop{page: 2, page_size: 25}
+
+      result = FlopRest.to_query(flop)
+
+      assert result == [page: 2, page_size: 25]
+    end
+
+    test "accepts Flop.Meta struct" do
+      flop = %Flop{page: 2, page_size: 25}
+      meta = %Flop.Meta{flop: flop}
+
+      result = FlopRest.to_query(meta)
+
+      assert result == [page: 2, page_size: 25]
+    end
+  end
+
+  describe "to_query/2" do
+    test "accepts options" do
+      flop = %Flop{page: 2, page_size: 25}
+
+      result = FlopRest.to_query(flop, [])
+
+      assert result == [page: 2, page_size: 25]
+    end
+  end
+
+  describe "build_path/2" do
+    test "returns path only for empty flop" do
+      assert "/events" = FlopRest.build_path("/events", %Flop{})
+    end
+
+    test "builds path with page-based pagination" do
+      flop = %Flop{page: 2, page_size: 25}
+
+      result = FlopRest.build_path("/events", flop)
+
+      assert result == "/events?page=2&page_size=25"
+    end
+
+    test "builds path with cursor-based pagination" do
+      flop = %Flop{first: 20, after: "abc123"}
+
+      result = FlopRest.build_path("/events", flop)
+
+      assert result == "/events?limit=20&starting_after=abc123"
+    end
+
+    test "builds path with sorting" do
+      flop = %Flop{order_by: [:created_at], order_directions: [:desc]}
+
+      result = FlopRest.build_path("/events", flop)
+
+      assert result == "/events?sort=-created_at"
+    end
+
+    test "builds path with filters" do
+      flop = %Flop{filters: [%Filter{field: :status, op: :==, value: "active"}]}
+
+      result = FlopRest.build_path("/events", flop)
+
+      assert result == "/events?status=active"
+    end
+
+    test "builds path with operator filter (URL encoded)" do
+      flop = %Flop{filters: [%Filter{field: :amount, op: :>=, value: 100}]}
+
+      result = FlopRest.build_path("/events", flop)
+
+      # amount[gte] gets URL encoded
+      assert result == "/events?amount%5Bgte%5D=100"
+    end
+
+    test "accepts Flop.Meta struct" do
+      flop = %Flop{page: 2, page_size: 25}
+      meta = %Flop.Meta{flop: flop}
+
+      result = FlopRest.build_path("/events", meta)
+
+      assert result == "/events?page=2&page_size=25"
+    end
+  end
+
+  describe "build_path/3" do
+    test "accepts options" do
+      flop = %Flop{page: 2, page_size: 25}
+
+      result = FlopRest.build_path("/events", flop, [])
+
+      assert result == "/events?page=2&page_size=25"
     end
   end
 end

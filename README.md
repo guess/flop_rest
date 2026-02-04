@@ -6,6 +6,10 @@
 
 REST-friendly query parameters for [Flop](https://github.com/woylie/flop).
 
+<div align="center">
+    <img src="https://github.com/guess/flop_rest/raw/main/docs/flop_rest.png" alt="FlopRest" width="200">
+</div>
+
 ## The Problem
 
 Flop is excellent for filtering, sorting, and paginating Ecto queries. But its query parameter format isn't ideal for API consumers:
@@ -48,10 +52,10 @@ Standard JavaScript works out of the box:
 ```javascript
 // No special serialization needed
 const params = new URLSearchParams({
-  status: 'published',
-  'created_at[gte]': '2024-01-01',
-  sort: '-created_at',
-  limit: '20'
+  status: "published",
+  "created_at[gte]": "2024-01-01",
+  sort: "-created_at",
+  limit: "20",
 });
 
 fetch(`/api/events?${params}`);

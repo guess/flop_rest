@@ -148,9 +148,9 @@ This produces links like:
 {
   "data": [...],
   "links": {
-    "self": "/events?limit=20&starting_after=abc123",
-    "next": "/events?limit=20&starting_after=xyz789",
-    "prev": "/events?limit=20&ending_before=abc123"
+    "self": "/events?after=abc123&limit=20",
+    "next": "/events?after=xyz789&limit=20",
+    "prev": "/events?before=abc123&limit=20"
   }
 }
 ```
@@ -159,7 +159,7 @@ Use `to_query/1` if you need the raw map to merge with other parameters:
 
 ```elixir
 query = FlopRest.to_query(meta.next_flop)
-# => %{"limit" => 20, "starting_after" => "xyz789"}
+# => %{"limit" => 20, "after" => "xyz789"}
 ```
 
 Both functions accept `Flop.t()` or `Flop.Meta.t()` structs.
@@ -237,8 +237,8 @@ FlopRest supports all three Flop pagination types.
 
 ```
 limit=20                        →  first: 20
-limit=20&starting_after=abc123  →  first: 20, after: "abc123"
-limit=20&ending_before=xyz789   →  last: 20, before: "xyz789"
+limit=20&after=abc123           →  first: 20, after: "abc123"
+limit=20&before=xyz789          →  last: 20, before: "xyz789"
 ```
 
 ### Page-based

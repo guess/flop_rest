@@ -46,7 +46,7 @@ defmodule FlopRest do
   Supports cursor-based, page-based, and offset-based:
 
       # Cursor-based
-      FlopRest.normalize(%{"limit" => "20", "starting_after" => "abc"})
+      FlopRest.normalize(%{"limit" => "20", "after" => "abc"})
       # => %{"first" => 20, "after" => "abc"}
 
       # Page-based
@@ -145,7 +145,7 @@ defmodule FlopRest do
   ## Examples
 
       iex> FlopRest.to_query(%Flop{first: 20, after: "abc", order_by: [:name], order_directions: [:desc]})
-      %{"limit" => 20, "sort" => "-name", "starting_after" => "abc"}
+      %{"limit" => 20, "sort" => "-name", "after" => "abc"}
 
       iex> FlopRest.to_query(%Flop{page: 2, page_size: 25})
       %{"page" => 2, "page_size" => 25}
@@ -200,7 +200,7 @@ defmodule FlopRest do
       "/events?page=2&page_size=25"
 
       iex> FlopRest.build_path("/events", %Flop{first: 20, after: "abc"})
-      "/events?limit=20&starting_after=abc"
+      "/events?after=abc&limit=20"
 
       iex> FlopRest.build_path("/events?species=dog", %Flop{page: 2, page_size: 25})
       "/events?page=2&page_size=25&species=dog"

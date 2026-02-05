@@ -63,8 +63,8 @@ defmodule FlopRest.FiltersTest do
       params = %{
         "status" => "active",
         "limit" => "10",
-        "starting_after" => "abc",
-        "ending_before" => "xyz",
+        "after" => "abc",
+        "before" => "xyz",
         "page" => "2",
         "page_size" => "25",
         "offset" => "50"

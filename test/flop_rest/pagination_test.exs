@@ -16,24 +16,24 @@ defmodule FlopRest.PaginationTest do
       assert %{"first" => 20} = Pagination.transform(%{"limit" => "20"})
     end
 
-    test "transforms starting_after to after" do
-      assert %{"after" => "cursor123"} = Pagination.transform(%{"starting_after" => "cursor123"})
+    test "transforms after to after" do
+      assert %{"after" => "cursor123"} = Pagination.transform(%{"after" => "cursor123"})
     end
 
-    test "transforms limit with starting_after to first and after" do
-      params = %{"limit" => "10", "starting_after" => "abc"}
+    test "transforms limit with after to first and after" do
+      params = %{"limit" => "10", "after" => "abc"}
 
       result = Pagination.transform(params)
 
       assert result == %{"first" => 10, "after" => "abc"}
     end
 
-    test "transforms ending_before to before" do
-      assert %{"before" => "cursor456"} = Pagination.transform(%{"ending_before" => "cursor456"})
+    test "transforms before to before" do
+      assert %{"before" => "cursor456"} = Pagination.transform(%{"before" => "cursor456"})
     end
 
-    test "transforms limit with ending_before to last and before" do
-      params = %{"limit" => "15", "ending_before" => "xyz"}
+    test "transforms limit with before to last and before" do
+      params = %{"limit" => "15", "before" => "xyz"}
 
       result = Pagination.transform(params)
 
@@ -93,8 +93,8 @@ defmodule FlopRest.PaginationTest do
     test "returns all pagination-related keys" do
       keys = Pagination.reserved_keys()
       assert "limit" in keys
-      assert "starting_after" in keys
-      assert "ending_before" in keys
+      assert "after" in keys
+      assert "before" in keys
       assert "page" in keys
       assert "page_size" in keys
       assert "offset" in keys
@@ -111,7 +111,7 @@ defmodule FlopRest.PaginationTest do
 
       result = Pagination.to_rest(flop)
 
-      assert result == %{"limit" => 20, "starting_after" => "abc"}
+      assert result == %{"limit" => 20, "after" => "abc"}
     end
 
     test "converts cursor forward with only first" do
@@ -127,7 +127,7 @@ defmodule FlopRest.PaginationTest do
 
       result = Pagination.to_rest(flop)
 
-      assert result == %{"starting_after" => "abc"}
+      assert result == %{"after" => "abc"}
     end
 
     test "converts cursor backward pagination" do
@@ -135,7 +135,7 @@ defmodule FlopRest.PaginationTest do
 
       result = Pagination.to_rest(flop)
 
-      assert result == %{"limit" => 20, "ending_before" => "xyz"}
+      assert result == %{"limit" => 20, "before" => "xyz"}
     end
 
     test "converts cursor backward with only last" do
@@ -151,7 +151,7 @@ defmodule FlopRest.PaginationTest do
 
       result = Pagination.to_rest(flop)
 
-      assert result == %{"ending_before" => "xyz"}
+      assert result == %{"before" => "xyz"}
     end
 
     test "converts page-based pagination" do

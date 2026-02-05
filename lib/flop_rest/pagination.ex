@@ -4,30 +4,30 @@ defmodule FlopRest.Pagination do
 
   Supports three pagination types:
 
-  - **Cursor-based**: `limit`, `starting_after`, `ending_before`
+  - **Cursor-based**: `limit`, `after`, `before`
   - **Page-based**: `page`, `page_size`
   - **Offset-based**: `offset`, `limit`
 
   When only `limit` is provided, it defaults to cursor-based pagination
   (`first`). This ensures Flop returns cursor metadata that can be used
-  for subsequent requests with `starting_after`/`ending_before`. To force
+  for subsequent requests with `after`/`before`. To force
   offset-based pagination, include `offset` (e.g., `offset=0`).
 
   No validation is performed - conflicting params are passed through
   for Flop to validate.
   """
 
-  @cursor_keys ~w(starting_after ending_before)
+  @cursor_keys ~w(after before)
   @page_keys ~w(page page_size)
   @offset_keys ~w(offset)
-  @reserved_keys ~w(limit starting_after ending_before page page_size offset)
+  @reserved_keys ~w(limit after before page page_size offset)
 
   @doc """
   Transforms pagination parameters to Flop format.
 
   ## Examples
 
-      iex> FlopRest.Pagination.transform(%{"limit" => "20", "starting_after" => "abc"})
+      iex> FlopRest.Pagination.transform(%{"limit" => "20", "after" => "abc"})
       %{"first" => 20, "after" => "abc"}
 
       iex> FlopRest.Pagination.transform(%{"limit" => "20"})
@@ -71,7 +71,7 @@ defmodule FlopRest.Pagination do
   defp build_pagination(_params, :none), do: %{}
 
   defp build_pagination(params, :cursor) do
-    if Map.has_key?(params, "ending_before") do
+    if Map.has_key?(params, "before") do
       build_cursor_backward(params)
     else
       build_cursor_forward(params)
@@ -93,13 +93,13 @@ defmodule FlopRest.Pagination do
   defp build_cursor_forward(params) do
     %{}
     |> maybe_put("first", params["limit"], &parse_int/1)
-    |> maybe_put("after", params["starting_after"])
+    |> maybe_put("after", params["after"])
   end
 
   defp build_cursor_backward(params) do
     %{}
     |> maybe_put("last", params["limit"], &parse_int/1)
-    |> maybe_put("before", params["ending_before"])
+    |> maybe_put("before", params["before"])
   end
 
   defp maybe_put(map, _key, nil), do: map
@@ -117,10 +117,10 @@ defmodule FlopRest.Pagination do
   ## Examples
 
       iex> FlopRest.Pagination.to_rest(%Flop{first: 20, after: "abc"})
-      %{"limit" => 20, "starting_after" => "abc"}
+      %{"limit" => 20, "after" => "abc"}
 
       iex> FlopRest.Pagination.to_rest(%Flop{last: 20, before: "xyz"})
-      %{"limit" => 20, "ending_before" => "xyz"}
+      %{"limit" => 20, "before" => "xyz"}
 
       iex> FlopRest.Pagination.to_rest(%Flop{page: 2, page_size: 25})
       %{"page" => 2, "page_size" => 25}
@@ -155,13 +155,13 @@ defmodule FlopRest.Pagination do
   defp build_rest_pagination(:cursor_forward, flop) do
     %{}
     |> maybe_put("limit", flop.first)
-    |> maybe_put("starting_after", flop.after)
+    |> maybe_put("after", flop.after)
   end
 
   defp build_rest_pagination(:cursor_backward, flop) do
     %{}
     |> maybe_put("limit", flop.last)
-    |> maybe_put("ending_before", flop.before)
+    |> maybe_put("before", flop.before)
   end
 
   defp build_rest_pagination(:page, flop) do

@@ -12,7 +12,7 @@ defmodule FlopRestTest do
         "starts_at" => %{"gte" => "2024-01-01"},
         "sort" => "-starts_at",
         "limit" => "20",
-        "starting_after" => "abc123"
+        "after" => "abc123"
       }
 
       result = FlopRest.normalize(params)
@@ -45,7 +45,7 @@ defmodule FlopRestTest do
     end
 
     test "handles cursor-based pagination" do
-      params = %{"limit" => "10", "starting_after" => "cursor123"}
+      params = %{"limit" => "10", "after" => "cursor123"}
 
       result = FlopRest.normalize(params)
 
@@ -220,7 +220,7 @@ defmodule FlopRestTest do
                "amount[gte]" => 100,
                "sort" => "-created_at",
                "limit" => 20,
-               "starting_after" => "abc123"
+               "after" => "abc123"
              }
     end
 
@@ -286,7 +286,7 @@ defmodule FlopRestTest do
 
       result = FlopRest.build_path("/events", flop)
 
-      assert result == "/events?limit=20&starting_after=abc123"
+      assert result == "/events?after=abc123&limit=20"
     end
 
     test "builds path with sorting" do

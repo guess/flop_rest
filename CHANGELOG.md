@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-02-05
+
+### Changed
+
+- **Breaking**: Renamed cursor pagination params `starting_after` → `after` and `ending_before` → `before` for brevity.
+
 ## [0.4.0] - 2025-02-04
 
 ### Added
@@ -33,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Added `flop` and `plug` as runtime dependencies
-- `limit` alone now defaults to cursor-based pagination (`first`) instead of offset-based. This ensures Flop returns cursor metadata for use with `starting_after`/`ending_before`. To use offset-based pagination, include `offset` (e.g., `offset=0&limit=25`).
+- `limit` alone now defaults to cursor-based pagination (`first`) instead of offset-based. This ensures Flop returns cursor metadata for use with `after`/`before`. To use offset-based pagination, include `offset` (e.g., `offset=0&limit=25`).
 
 ## [0.1.0] - 2025-02-03
 
@@ -51,10 +57,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `-` prefix for descending order
   - `+` or no prefix for ascending order
 - Pagination support for all three Flop pagination types:
-  - Cursor-based (Stripe-style): `limit`, `starting_after`, `ending_before`
+  - Cursor-based (Stripe-style): `limit`, `after`, `before`
   - Page-based: `page`, `page_size`
   - Offset-based: `offset`, `limit`
 
+[0.5.0]: https://github.com/guess/flop_rest/releases/tag/v0.5.0
 [0.4.0]: https://github.com/guess/flop_rest/releases/tag/v0.4.0
 [0.3.0]: https://github.com/guess/flop_rest/releases/tag/v0.3.0
 [0.2.0]: https://github.com/guess/flop_rest/releases/tag/v0.2.0

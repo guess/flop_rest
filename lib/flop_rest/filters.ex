@@ -20,6 +20,8 @@ defmodule FlopRest.Filters do
 
   List operators (`in`, `not_in`, `like_and`, `like_or`, `ilike_and`, `ilike_or`)
   automatically split comma-separated string values into lists.
+  A single value (no commas) is passed through as a string, allowing
+  Flop to apply its own parsing (e.g. whitespace splitting for `like_and`).
   Use the bracket `[]` syntax if values themselves contain commas.
 
   Unknown operators are passed through verbatim for Flop to validate.
@@ -110,7 +112,10 @@ defmodule FlopRest.Filters do
 
   defp normalize_value(op, value) when is_binary(value) do
     if Operators.list_operator?(op) do
-      String.split(value, ",")
+      case String.split(value, ",") do
+        [_single] -> value
+        multiple -> multiple
+      end
     else
       value
     end

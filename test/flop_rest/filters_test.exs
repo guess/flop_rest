@@ -81,12 +81,20 @@ defmodule FlopRest.FiltersTest do
       assert filter == %{"field" => "name", "op" => "ilike", "value" => "foo,bar"}
     end
 
-    test "single value for list operator becomes single-element list" do
+    test "single value for list operator passes through as string" do
       params = %{"status" => %{"in" => "draft"}}
 
       assert [filter] = Filters.extract(params)
 
-      assert filter == %{"field" => "status", "op" => "in", "value" => ["draft"]}
+      assert filter == %{"field" => "status", "op" => "in", "value" => "draft"}
+    end
+
+    test "single value for like_and passes through for Flop whitespace splitting" do
+      params = %{"name" => %{"like_and" => "Rubi Rosa"}}
+
+      assert [filter] = Filters.extract(params)
+
+      assert filter == %{"field" => "name", "op" => "like_and", "value" => "Rubi Rosa"}
     end
 
     test "handles Plug-style nested map for list values" do

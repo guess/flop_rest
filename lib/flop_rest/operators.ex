@@ -34,7 +34,9 @@ defmodule FlopRest.Operators do
   ## List Operators
 
   The operators `in`, `not_in`, `like_and`, `like_or`, `ilike_and`, and `ilike_or`
-  automatically split comma-separated string values into lists.
+  automatically split comma-separated string values into lists. A single value
+  (no commas) is passed through as a string, allowing Flop to apply its own
+  parsing (e.g. whitespace splitting for `like_and`).
 
   Use the bracket `[]` syntax if values themselves contain commas:
 

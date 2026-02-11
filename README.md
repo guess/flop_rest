@@ -23,8 +23,9 @@ Flop is excellent for filtering, sorting, and paginating Ecto queries. But its q
 ```
 GET /events
   ?filters[0][field]=status
-  &filters[0][op]==
-  &filters[0][value]=published
+  &filters[0][op]=in
+  &filters[0][value][]=published
+  &filters[0][value][]=draft
   &filters[1][field]=starts_at
   &filters[1][op]=>=
   &filters[1][value]=2024-01-01
@@ -40,7 +41,7 @@ This is verbose, error-prone, and unfamiliar to developers used to modern REST A
 FlopRest transforms intuitive, Stripe-style query parameters into Flop format:
 
 ```
-GET /events?status=published&starts_at[gte]=2024-01-01&sort=-starts_at&limit=20
+GET /events?status[in]=published,draft&starts_at[gte]=2024-01-01&sort=-starts_at&limit=20
 ```
 
 Same query. Same Flop power underneath. Better developer experience on top.
@@ -164,93 +165,108 @@ query = FlopRest.to_query(meta.next_flop)
 
 Both functions accept `Flop.t()` or `Flop.Meta.t()` structs.
 
-## Filters
+## Query Parameter Reference
 
-Bare values become equality filters:
+Everything below describes what your API consumers send as query parameters. `FlopRest.normalize/1` handles the translation to Flop format automatically.
 
-```
-status=published     →  %{field: "status", op: "==", value: "published"}
-```
+### Filters
 
-Operators are specified as nested keys:
+A value on its own means "equals":
 
 ```
-amount[gte]=100      →  %{field: "amount", op: ">=", value: "100"}
-amount[lt]=500       →  %{field: "amount", op: "<", value: "500"}
+GET /events?status=published
 ```
 
-Multiple operators on the same field create multiple filters:
+Add an operator in brackets to change the comparison:
 
 ```
-amount[gte]=100&amount[lt]=500  →  two separate filters
+GET /events?amount[gte]=100
+GET /events?amount[lt]=500
 ```
 
-List values for `in` and `not_in`:
+You can combine multiple operators on the same field:
 
 ```
-status[in][]=draft&status[in][]=review  →  %{field: "status", op: "in", value: ["draft", "review"]}
+GET /events?amount[gte]=100&amount[lt]=500
 ```
 
-### Operator Reference
+#### List values
 
-| REST Operator  | Flop Operator  | Description                    |
-| -------------- | -------------- | ------------------------------ |
-| `eq`           | `==`           | Equal (also bare value)        |
-| `ne`           | `!=`           | Not equal                      |
-| `lt`           | `<`            | Less than                      |
-| `lte`          | `<=`           | Less than or equal             |
-| `gt`           | `>`            | Greater than                   |
-| `gte`          | `>=`           | Greater than or equal          |
-| `in`           | `in`           | In list                        |
-| `not_in`       | `not_in`       | Not in list                    |
-| `contains`     | `contains`     | Array contains                 |
-| `not_contains` | `not_contains` | Array does not contain         |
-| `like`         | `like`         | SQL LIKE                       |
-| `not_like`     | `not_like`     | SQL NOT LIKE                   |
-| `like_and`     | `like_and`     | LIKE with AND                  |
-| `like_or`      | `like_or`      | LIKE with OR                   |
-| `ilike`        | `ilike`        | Case-insensitive LIKE          |
-| `not_ilike`    | `not_ilike`    | Case-insensitive NOT LIKE      |
-| `ilike_and`    | `ilike_and`    | Case-insensitive LIKE with AND |
-| `ilike_or`     | `ilike_or`     | Case-insensitive LIKE with OR  |
-| `empty`        | `empty`        | Is NULL                        |
-| `not_empty`    | `not_empty`    | Is NOT NULL                    |
-| `search`       | `=~`           | Search (configurable in Flop)  |
+Some operators accept multiple values. Use commas to separate them:
+
+```
+GET /events?status[in]=draft,published
+```
+
+If a value itself contains a comma, use the bracket `[]` syntax instead:
+
+```
+GET /events?status[in][]=draft&status[in][]=has,comma
+```
+
+The operators that split on commas are: `in`, `not_in`, `like_and`, `like_or`, `ilike_and`, `ilike_or`.
+
+#### Operators
+
+| Operator       | Example                         | SQL                                           |
+| -------------- | ------------------------------- | --------------------------------------------- |
+| _(none)_       | `status=active`                 | `status = 'active'`                           |
+| `eq`           | `status[eq]=active`             | `status = 'active'`                           |
+| `ne`           | `status[ne]=archived`           | `status != 'archived'`                        |
+| `gt`           | `age[gt]=18`                    | `age > 18`                                    |
+| `gte`          | `age[gte]=18`                   | `age >= 18`                                   |
+| `lt`           | `price[lt]=100`                 | `price < 100`                                 |
+| `lte`          | `price[lte]=100`                | `price <= 100`                                |
+| `in`           | `status[in]=draft,published`    | `status IN ('draft', 'published')`            |
+| `not_in`       | `status[not_in]=draft,archived` | `status NOT IN ('draft', 'archived')`         |
+| `contains`     | `tags[contains]=elixir`         | `'elixir' = ANY(tags)`                        |
+| `not_contains` | `tags[not_contains]=go`         | `'go' != ALL(tags)`                           |
+| `like`         | `name[like]=%john%`             | `name LIKE '%john%'`                          |
+| `not_like`     | `name[not_like]=%test%`         | `name NOT LIKE '%test%'`                      |
+| `like_and`     | `name[like_and]=Rubi,Rosa`      | `name LIKE '%Rubi%' AND name LIKE '%Rosa%'`   |
+| `like_or`      | `name[like_or]=Rubi,Rosa`       | `name LIKE '%Rubi%' OR name LIKE '%Rosa%'`    |
+| `ilike`        | `name[ilike]=%john%`            | `name ILIKE '%john%'`                         |
+| `not_ilike`    | `name[not_ilike]=%test%`        | `name NOT ILIKE '%test%'`                     |
+| `ilike_and`    | `name[ilike_and]=Rubi,Rosa`     | `name ILIKE '%Rubi%' AND name ILIKE '%Rosa%'` |
+| `ilike_or`     | `name[ilike_or]=Rubi,Rosa`      | `name ILIKE '%Rubi%' OR name ILIKE '%Rosa%'`  |
+| `empty`        | `deleted_at[empty]=true`        | `deleted_at IS NULL`                          |
+| `not_empty`    | `deleted_at[not_empty]=true`    | `deleted_at IS NOT NULL`                      |
+| `search`       | `q[search]=john`                | Configurable in Flop (ILIKE by default)       |
 
 Unknown operators are passed through for Flop to validate.
 
-## Sorting
+### Sorting
 
-Use `-` prefix for descending, `+` or no prefix for ascending:
-
-```
-sort=name              →  order_by: ["name"], order_directions: ["asc"]
-sort=-created_at       →  order_by: ["created_at"], order_directions: ["desc"]
-sort=-created_at,name  →  order_by: ["created_at", "name"], order_directions: ["desc", "asc"]
-```
-
-## Pagination
-
-FlopRest supports all three Flop pagination types.
-
-### Cursor-based (Stripe-style)
+Use the `sort` parameter with `-` prefix for descending:
 
 ```
-limit=20                        →  first: 20
-limit=20&after=abc123           →  first: 20, after: "abc123"
-limit=20&before=xyz789          →  last: 20, before: "xyz789"
+GET /events?sort=name                   # ascending by name
+GET /events?sort=-created_at            # descending by created_at
+GET /events?sort=-created_at,name       # descending by created_at, then ascending by name
 ```
 
-### Page-based
+### Pagination
+
+FlopRest supports all three Flop pagination types. The type is detected automatically based on which parameters are present.
+
+**Cursor-based** (Stripe-style):
 
 ```
-page=2&page_size=25  →  page: 2, page_size: 25
+GET /events?limit=20                    # first 20 results
+GET /events?limit=20&after=abc123       # next 20 after cursor
+GET /events?limit=20&before=xyz789      # previous 20 before cursor
 ```
 
-### Offset-based
+**Page-based:**
 
 ```
-offset=50&limit=25  →  offset: 50, limit: 25
+GET /events?page=2&page_size=25
+```
+
+**Offset-based:**
+
+```
+GET /events?offset=50&limit=25
 ```
 
 ## Design Philosophy

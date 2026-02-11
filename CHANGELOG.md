@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Comma-separated value parsing for list operators (`in`, `not_in`, `like_and`, `like_or`, `ilike_and`, `ilike_or`). For example, `status[in]=draft,published` is now equivalent to `status[in][]=draft&status[in][]=published`. The bracket `[]` syntax still works and serves as an escape hatch for values that contain commas.
+- Operator reference table with SQL examples in `FlopRest.Operators` moduledoc.
+
 ## [0.5.0] - 2026-02-05
 
 ### Changed

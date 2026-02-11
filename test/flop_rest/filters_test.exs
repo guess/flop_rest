@@ -49,6 +49,46 @@ defmodule FlopRest.FiltersTest do
       assert filter == %{"field" => "status", "op" => "in", "value" => ["draft", "published"]}
     end
 
+    test "splits comma-separated string for in operator" do
+      params = %{"status" => %{"in" => "draft,published"}}
+
+      assert [filter] = Filters.extract(params)
+
+      assert filter == %{"field" => "status", "op" => "in", "value" => ["draft", "published"]}
+    end
+
+    test "splits comma-separated string for not_in operator" do
+      params = %{"status" => %{"not_in" => "archived,deleted"}}
+
+      assert [filter] = Filters.extract(params)
+
+      assert filter == %{"field" => "status", "op" => "not_in", "value" => ["archived", "deleted"]}
+    end
+
+    test "splits comma-separated string for like_and operator" do
+      params = %{"name" => %{"like_and" => "%foo%,%bar%"}}
+
+      assert [filter] = Filters.extract(params)
+
+      assert filter == %{"field" => "name", "op" => "like_and", "value" => ["%foo%", "%bar%"]}
+    end
+
+    test "does not split comma-separated string for non-list operators" do
+      params = %{"name" => %{"ilike" => "foo,bar"}}
+
+      assert [filter] = Filters.extract(params)
+
+      assert filter == %{"field" => "name", "op" => "ilike", "value" => "foo,bar"}
+    end
+
+    test "single value for list operator becomes single-element list" do
+      params = %{"status" => %{"in" => "draft"}}
+
+      assert [filter] = Filters.extract(params)
+
+      assert filter == %{"field" => "status", "op" => "in", "value" => ["draft"]}
+    end
+
     test "handles Plug-style nested map for list values" do
       # Plug parses status[in][]=draft&status[in][]=published as:
       # %{"status" => %{"in" => %{"" => ["draft", "published"]}}}

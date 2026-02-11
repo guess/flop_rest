@@ -14,8 +14,13 @@ defmodule FlopRest.Filters do
   Handles:
   - Bare values: `status=published` → `{field: status, op: ==, value: published}`
   - Operators: `amount[gte]=10` → `{field: amount, op: >=, value: 10}`
-  - Lists: `status[in][]=draft&status[in][]=published`
+  - Comma-separated lists: `status[in]=draft,published`
+  - Bracket-style lists: `status[in][]=draft&status[in][]=published`
   - Multiple ops on same field: `amount[gte]=10&amount[lte]=100` → two filters
+
+  List operators (`in`, `not_in`, `like_and`, `like_or`, `ilike_and`, `ilike_or`)
+  automatically split comma-separated string values into lists.
+  Use the bracket `[]` syntax if values themselves contain commas.
 
   Unknown operators are passed through verbatim for Flop to validate.
   """
@@ -86,7 +91,7 @@ defmodule FlopRest.Filters do
 
   defp expand_filter({field, value}) when is_map(value) do
     Enum.map(value, fn {op, val} ->
-      %{"field" => field, "op" => Operators.to_flop(op), "value" => normalize_value(val)}
+      %{"field" => field, "op" => Operators.to_flop(op), "value" => normalize_value(op, val)}
     end)
   end
 
@@ -94,7 +99,7 @@ defmodule FlopRest.Filters do
     [%{"field" => field, "op" => "==", "value" => value}]
   end
 
-  defp normalize_value(value) when is_map(value) do
+  defp normalize_value(_op, value) when is_map(value) do
     # Handle nested map with list values (Plug's parsing of []=)
     # e.g., %{"" => ["draft", "published"]} from status[in][]=draft&status[in][]=published
     case Map.values(value) do
@@ -103,7 +108,15 @@ defmodule FlopRest.Filters do
     end
   end
 
-  defp normalize_value(value), do: value
+  defp normalize_value(op, value) when is_binary(value) do
+    if Operators.list_operator?(op) do
+      String.split(value, ",")
+    else
+      value
+    end
+  end
+
+  defp normalize_value(_op, value), do: value
 
   @doc """
   Converts a list of Flop.Filter structs back to REST-style params.

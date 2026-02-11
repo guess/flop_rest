@@ -57,7 +57,7 @@ defmodule FlopRest do
       FlopRest.normalize(%{"offset" => "50", "limit" => "25"})
       # => %{"offset" => 50, "limit" => 25}
 
-  See the [README](readme.html) for the full operator reference.
+  See `FlopRest.Operators` for the full operator reference.
   """
 
   alias FlopRest.Filters

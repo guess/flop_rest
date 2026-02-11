@@ -77,7 +77,7 @@ Add `flop_rest` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:flop_rest, "~> 0.4"},
+    {:flop_rest, "~> 0.6"},
     {:flop, "~> 0.26"}
   ]
 end

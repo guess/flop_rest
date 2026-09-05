@@ -128,10 +128,23 @@ defmodule FlopRest do
   defp get_filterable_fields(nil), do: nil
 
   defp get_filterable_fields(schema) when is_atom(schema) do
-    schema
-    |> struct()
-    |> Flop.Schema.filterable()
-    |> MapSet.new(&to_string/1)
+    case filterable_fields(schema) do
+      nil -> nil
+      fields -> MapSet.new(fields, &to_string/1)
+    end
+  end
+
+  # Flop 0.29 turned `Flop.Schema` from a protocol into a behaviour and removed
+  # `Flop.Schema.filterable/1`. `Flop.allowed_fields/2` is its replacement and takes the
+  # module instead of a struct. Supporting both keeps one flop_rest working on either side
+  # of that change. Each call goes through `apply/3` because the function it names does not
+  # exist on the other side, and a direct call would warn there.
+  defp filterable_fields(schema) do
+    if Code.ensure_loaded?(Flop) and function_exported?(Flop, :allowed_fields, 2) do
+      apply(Flop, :allowed_fields, [:filterable, [for: schema]])
+    else
+      apply(Flop.Schema, :filterable, [struct(schema)])
+    end
   end
 
   defp maybe_put(map, _key, []), do: map

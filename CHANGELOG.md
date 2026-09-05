@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `normalize/2` with the `:for` option no longer raises on Flop 0.29. Flop 0.29 turned `Flop.Schema` from a protocol into a behaviour and removed `Flop.Schema.filterable/1`; the filterable list is now read through `Flop.allowed_fields/2` when it is available, falling back to the protocol on earlier Flop versions. Both are supported, so this is not a breaking change and the `~> 0.26` requirement is unchanged — it already resolved to 0.29, which is how the breakage reached users.
+
 ## [0.6.1] - 2026-02-11
 
 ### Changed
